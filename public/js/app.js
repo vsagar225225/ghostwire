@@ -38,9 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
       draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(168, 85, 247, ${this.alpha})`; // Purple space particles
+        ctx.fillStyle = `rgba(0, 255, 183, ${this.alpha})`; // Mint cyber particles
         ctx.shadowBlur = this.r * 2;
-        ctx.shadowColor = '#8b5cf6';
+        ctx.shadowColor = '#00ffb7';
         ctx.fill();
         ctx.shadowBlur = 0; // Reset shadow for efficiency
       }
@@ -365,7 +365,40 @@ document.addEventListener('DOMContentLoaded', () => {
         enterPortalBtn.querySelector('span').textContent = 'Enter the Sphere';
       }
     });
-  });
+  // Change Profile / Reset Details Event Trigger
+  const selfProfilePill = document.getElementById('selfProfilePill');
+  if (selfProfilePill) {
+    selfProfilePill.addEventListener('click', () => {
+      if (confirm('Would you like to change your display profile? This will disconnect you from all active chats.')) {
+        // Disconnect immediately
+        socket.disconnect();
+
+        // Pre-fill fields with current active profile
+        if (myProfile) {
+          // If the alias contains '#' it was randomly generated, so leave it blank.
+          // Otherwise, pre-fill what they typed.
+          document.getElementById('aliasInput').value = myProfile.alias.includes('#') ? '' : myProfile.alias;
+          ageRange.value = myProfile.age;
+          ageValue.textContent = myProfile.age;
+          locationInput.value = myProfile.location;
+        }
+
+        // Transition back to onboarding overlay
+        appPortal.classList.add('hidden');
+        chatInputDock.classList.add('hidden');
+        onboardingScreen.classList.remove('hidden');
+
+        // Re-enable submission button
+        const enterPortalBtn = document.getElementById('enterPortalBtn');
+        enterPortalBtn.disabled = false;
+        enterPortalBtn.querySelector('span').textContent = 'Enter the Sphere';
+
+        // Reconnect socket so it is fully ready for next submit
+        socket.connect();
+      }
+    });
+  }
+
 
 
   // Header Mode Navigation Tabs switcher
