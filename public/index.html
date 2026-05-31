@@ -312,6 +312,24 @@
     </div>
   </main>
 
+  <!-- 3. INCOMING DIRECT CHAT INVITE MODAL OVERLAY -->
+  <div class="invite-overlay hidden" id="inviteModal">
+    <div class="glass-card invite-card">
+      <div class="glowing-border"></div>
+      <div class="invite-alert-badge">⚡ Incoming Request</div>
+      <div class="seeking-avatar-wrapper" style="width: 72px; height: 72px; margin: 0 auto 12px;">
+        <div class="radar-ping-ring"></div>
+        <div class="seeker-orb" style="width: 48px; height: 48px; font-size: 1.3rem;">💬</div>
+      </div>
+      <h3>Direct Private Chat</h3>
+      <p id="inviteModalBody">Stranger wants to connect for a 1-on-1 private chat.</p>
+      <div class="invite-modal-buttons">
+        <button class="outline-btn danger-btn" id="declineInviteBtn" style="padding: 12px 20px; font-size: 0.85rem;">Decline Invite</button>
+        <button class="glow-btn" id="acceptInviteBtn" style="padding: 12px 20px; font-size: 0.85rem; box-shadow: none;">Accept Chat</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Load Real-Time Socket.io Script & Client Logic -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/app.js"></script>

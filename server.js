@@ -250,6 +250,120 @@ io.on('connection', (socket) => {
     socket.emit('match-idle');
   });
 
+  // Direct Private Chat Invitations (1-to-1 Specific Invites)
+  socket.on('send-chat-invite', (data, callback) => {
+    const sender = activeUsers.get(socket.id);
+    if (!sender) return callback({ success: false, error: 'Session expired.' });
+
+    // Find target user by alias
+    let target = null;
+    for (const [id, user] of activeUsers.entries()) {
+      if (user.alias === data.targetAlias) {
+        target = user;
+        break;
+      }
+    }
+
+    if (!target) {
+      return callback({ success: false, error: 'User is no longer online.' });
+    }
+
+    if (target.id === socket.id) {
+      return callback({ success: false, error: 'You cannot invite yourself.' });
+    }
+
+    if (target.matchedWith) {
+      return callback({ success: false, error: `${target.alias} is already busy in another chat.` });
+    }
+
+    if (target.isMatching) {
+      return callback({ success: false, error: `${target.alias} is currently searching in the matchmaker.` });
+    }
+
+    // Route invitation to target user
+    io.to(target.id).emit('recv-chat-invite', {
+      from: {
+        id: socket.id,
+        alias: sender.alias,
+        age: sender.age,
+        gender: sender.gender,
+        location: sender.location
+      }
+    });
+
+    callback({ success: true });
+  });
+
+  socket.on('decline-chat-invite', (data) => {
+    const sender = activeUsers.get(socket.id);
+    if (!sender) return;
+
+    const targetSocket = io.sockets.sockets.get(data.senderId);
+    if (targetSocket) {
+      targetSocket.emit('invite-declined', { by: sender.alias });
+    }
+  });
+
+  socket.on('accept-chat-invite', (data, callback) => {
+    const receiver = activeUsers.get(socket.id);
+    if (!receiver) return callback({ success: false, error: 'Session expired.' });
+
+    const senderId = data.senderId;
+    const sender = activeUsers.get(senderId);
+
+    if (!sender) {
+      return callback({ success: false, error: 'The user who invited you has disconnected.' });
+    }
+
+    if (sender.matchedWith) {
+      return callback({ success: false, error: `${sender.alias} is already chatting with someone else.` });
+    }
+
+    // Set match states
+    sender.matchedWith = receiver.id;
+    sender.isMatching = false;
+    receiver.matchedWith = sender.id;
+    receiver.isMatching = false;
+
+    // Filter from random matchmaking queue if they were in it
+    matchingQueue = matchingQueue.filter(id => id !== sender.id && id !== receiver.id);
+
+    const roomId = `room_${sender.id}_${receiver.id}`;
+    const sSender = io.sockets.sockets.get(sender.id);
+    const sReceiver = io.sockets.sockets.get(receiver.id);
+
+    if (sSender && sReceiver) {
+      sSender.join(roomId);
+      sReceiver.join(roomId);
+
+      sSender.emit('match-found', {
+        roomId: roomId,
+        peer: {
+          alias: receiver.alias,
+          age: receiver.age,
+          gender: receiver.gender,
+          location: receiver.location
+        }
+      });
+
+      sReceiver.emit('match-found', {
+        roomId: roomId,
+        peer: {
+          alias: sender.alias,
+          age: sender.age,
+          gender: sender.gender,
+          location: sender.location
+        }
+      });
+
+      broadcastPresence();
+      callback({ success: true });
+    } else {
+      callback({ success: false, error: 'Could not connect the private session.' });
+    }
+  });
+
+
   // 5. Private Whisper Messaging
   socket.on('send-private-msg', (data) => {
     const user = activeUsers.get(socket.id);

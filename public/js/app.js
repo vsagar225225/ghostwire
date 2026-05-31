@@ -628,21 +628,104 @@ document.addEventListener('DOMContentLoaded', () => {
       const stateClass = usr.isMatched ? 'busy' : 'online';
       const stateTitle = usr.isMatched ? 'Busy in matching' : 'Available';
 
+      // Draw custom Chat invitation button for eligible peers
+      const inviteBtn = (!isSelf && !usr.isMatched) ? `<button class="sidebar-dm-btn" data-alias="${usr.alias}">Chat</button>` : '';
+
       usersListScroller.insertAdjacentHTML('beforeend', `
         <div class="user-sidebar-card">
           <div class="user-card-top">
             <span class="user-card-alias">${usr.alias}${selfIndicator}</span>
-            <span class="user-state-dot ${stateClass}" title="${stateTitle}"></span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              ${inviteBtn}
+              <span class="user-state-dot ${stateClass}" title="${stateTitle}"></span>
+            </div>
           </div>
           <div class="user-card-meta">
             <span>${usr.age} • ${usr.gender}</span>
             <span>•</span>
-            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">${usr.location}</span>
+            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;">${usr.location}</span>
           </div>
         </div>
       `);
     });
+
+    // Bind click handlers to sidebar direct invite buttons
+    document.querySelectorAll('.sidebar-dm-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetAlias = btn.getAttribute('data-alias');
+        if (!targetAlias) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Inviting...';
+
+        socket.emit('send-chat-invite', { targetAlias }, (res) => {
+          if (res.success) {
+            alert(`Sent private chat invitation to ${targetAlias}. Please wait for their response!`);
+          } else {
+            alert(res.error || 'Failed to send invitation.');
+            btn.disabled = false;
+            btn.textContent = 'Chat';
+          }
+        });
+      });
+    });
   });
+
+  // Direct Private 1-to-1 Chat Invite Overlay Event Listeners
+  let currentIncomingInvite = null;
+  const inviteModal = document.getElementById('inviteModal');
+  const inviteModalBody = document.getElementById('inviteModalBody');
+  const acceptInviteBtn = document.getElementById('acceptInviteBtn');
+  const declineInviteBtn = document.getElementById('declineInviteBtn');
+
+  socket.on('recv-chat-invite', (data) => {
+    currentIncomingInvite = data.from;
+    
+    // Play alert chime
+    sfx.playMatch();
+    
+    inviteModalBody.innerHTML = `
+      <strong>${data.from.alias}</strong> (${data.from.age} • ${data.from.gender}) from <strong>${data.from.location}</strong> wants to connect for a 1-on-1 private chat.
+    `;
+    inviteModal.classList.remove('hidden');
+  });
+
+  acceptInviteBtn.addEventListener('click', () => {
+    if (!currentIncomingInvite) return;
+    
+    socket.emit('accept-chat-invite', { senderId: currentIncomingInvite.id }, (res) => {
+      if (res.success) {
+        inviteModal.classList.add('hidden');
+        currentIncomingInvite = null;
+        
+        // Transition panel tabs to Whisper Match private chat screen
+        document.getElementById('tabMatch').click();
+      } else {
+        alert(res.error || 'Could not establish connection.');
+        inviteModal.classList.add('hidden');
+        currentIncomingInvite = null;
+      }
+    });
+  });
+
+  declineInviteBtn.addEventListener('click', () => {
+    if (!currentIncomingInvite) return;
+    
+    socket.emit('decline-chat-invite', { senderId: currentIncomingInvite.id });
+    inviteModal.classList.add('hidden');
+    currentIncomingInvite = null;
+  });
+
+  socket.on('invite-declined', (data) => {
+    alert(`${data.by} declined your chat invitation.`);
+    
+    // Restore all invite buttons
+    document.querySelectorAll('.sidebar-dm-btn').forEach((btn) => {
+      btn.disabled = false;
+      btn.textContent = 'Chat';
+    });
+  });
+
 
   socket.on('recv-global-msg', (data) => {
     appendGlobalMsg(data);
