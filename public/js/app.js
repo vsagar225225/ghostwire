@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ANONSPHERE CLIENT-SIDE APPLICATION ENGINE
+   GHOSTWIRE CLIENT-SIDE APPLICATION ENGINE
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {

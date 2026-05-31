@@ -376,7 +376,7 @@ io.on('connection', (socket) => {
 // Run server
 server.listen(PORT, () => {
   console.log(`==================================================`);
-  console.log(`  AnonSphere Server listening dynamically on Port: ${PORT}`);
+  console.log(`  Ghostwire Server listening dynamically on Port: ${PORT}`);
   console.log(`  Local URL: http://localhost:${PORT}`);
   console.log(`==================================================`);
 });
