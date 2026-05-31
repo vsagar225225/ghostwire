@@ -162,8 +162,33 @@ io.on('connection', (socket) => {
         return callback({ success: false, error: 'Please enter valid age, gender, and location.' });
       }
 
-      // Generate credentials
-      const alias = generateAlias();
+      // Generate or validate optional display name
+      let alias = '';
+      if (data.customAlias && typeof data.customAlias === 'string') {
+        const cleanedAlias = sanitizeText(data.customAlias).trim();
+        if (cleanedAlias.length > 0) {
+          if (cleanedAlias.length < 2 || cleanedAlias.length > 16 || !/^[a-zA-Z0-9_ -]+$/.test(cleanedAlias)) {
+            return callback({ success: false, error: 'Display name must be 2-16 characters and alphanumeric (letters, numbers, hyphens, underscores).' });
+          }
+          // Enforce unique names online to prevent spoofing
+          let isDuplicate = false;
+          for (const u of activeUsers.values()) {
+            if (u.alias.toLowerCase() === cleanedAlias.toLowerCase()) {
+              isDuplicate = true;
+              break;
+            }
+          }
+          if (isDuplicate) {
+            return callback({ success: false, error: 'Display name is already taken by someone online.' });
+          }
+          alias = cleanedAlias;
+        } else {
+          alias = generateAlias();
+        }
+      } else {
+        alias = generateAlias();
+      }
+
       const user = {
         id: socket.id,
         alias: alias,

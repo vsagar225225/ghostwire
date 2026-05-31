@@ -207,6 +207,121 @@ document.addEventListener('DOMContentLoaded', () => {
   let activePartner = null; // metadata of matched peer
   let privateRoomId = null;
 
+  // ==========================================================================
+  // LOCATION SUGGESTIONS AUTOCOMPLETE ENGINE
+  // ==========================================================================
+  const CITIES_DB = [
+    'London, UK', 'New York, USA', 'Tokyo, Japan', 'Paris, France', 'Berlin, Germany',
+    'Sydney, Australia', 'Mumbai, India', 'Toronto, Canada', 'Singapore', 'Dubai, UAE',
+    'Munich, Germany', 'Amsterdam, Netherlands', 'Rome, Italy', 'Los Angeles, USA',
+    'San Francisco, USA', 'Seoul, South Korea', 'Neo Tokyo (Virtual)', 'Cyber City (Virtual)',
+    'Mars Colony Alpha (Virtual)', 'The Matrix (Virtual)', 'OffGrid Sanctuary', 'Hong Kong',
+    'Cape Town, South Africa', 'Rio de Janeiro, Brazil', 'Bangkok, Thailand', 'Cairo, Egypt'
+  ];
+
+  const locationInput = document.getElementById('locationInput');
+  const locationSuggestions = document.getElementById('locationSuggestions');
+  let highlightedIndex = -1;
+
+  const closeSuggestions = () => {
+    if (locationSuggestions) {
+      locationSuggestions.classList.add('hidden');
+      locationSuggestions.innerHTML = '';
+    }
+    highlightedIndex = -1;
+  };
+
+  if (locationInput && locationSuggestions) {
+    locationInput.addEventListener('input', () => {
+      const query = locationInput.value.trim().toLowerCase();
+      if (!query) {
+        closeSuggestions();
+        return;
+      }
+
+      // Filter matched items
+      const matches = CITIES_DB.filter(city => city.toLowerCase().includes(query));
+      locationSuggestions.innerHTML = '';
+      
+      if (matches.length > 0) {
+        matches.forEach(city => {
+          const item = document.createElement('div');
+          item.className = 'suggestion-item';
+          
+          // Highlight matching characters dynamically
+          const startIdx = city.toLowerCase().indexOf(query);
+          const endIdx = startIdx + query.length;
+          const highlighted = city.substring(0, startIdx) + '<strong>' + city.substring(startIdx, endIdx) + '</strong>' + city.substring(endIdx);
+          
+          item.innerHTML = `
+            <span>${highlighted}</span>
+            <span class="suggestion-type">Place</span>
+          `;
+          item.addEventListener('click', () => {
+            locationInput.value = city;
+            closeSuggestions();
+          });
+          locationSuggestions.appendChild(item);
+        });
+      }
+
+      // Add specialized Custom Fallback item
+      const customItem = document.createElement('div');
+      customItem.className = 'suggestion-item';
+      customItem.innerHTML = `
+        <span>➕ Use Custom: "<strong>${locationInput.value}</strong>"</span>
+        <span class="suggestion-type" style="background: var(--accent-pink); color: #fff;">Custom</span>
+      `;
+      customItem.addEventListener('click', () => {
+        closeSuggestions();
+      });
+      locationSuggestions.appendChild(customItem);
+
+      locationSuggestions.classList.remove('hidden');
+    });
+
+    // Close on clicking outside dropdown bounds
+    document.addEventListener('click', (e) => {
+      if (!locationInput.contains(e.target) && !locationSuggestions.contains(e.target)) {
+        closeSuggestions();
+      }
+    });
+
+    // Arrow navigation support
+    locationInput.addEventListener('keydown', (e) => {
+      const items = locationSuggestions.querySelectorAll('.suggestion-item');
+      if (locationSuggestions.classList.contains('hidden') || items.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        highlightedIndex = (highlightedIndex + 1) % items.length;
+        updateHighlight(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+        updateHighlight(items);
+      } else if (e.key === 'Enter') {
+        if (highlightedIndex > -1 && highlightedIndex < items.length) {
+          e.preventDefault();
+          items[highlightedIndex].click();
+        }
+      } else if (e.key === 'Escape') {
+        closeSuggestions();
+      }
+    });
+  }
+
+  const updateHighlight = (items) => {
+    items.forEach((item, idx) => {
+      if (idx === highlightedIndex) {
+        item.classList.add('highlighted');
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('highlighted');
+      }
+    });
+  };
+
   // Onboarding Submission Event
   const onboardingForm = document.getElementById('onboardingForm');
   const onboardingScreen = document.getElementById('onboardingScreen');
@@ -216,7 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   onboardingForm.addEventListener('submit', () => {
     const age = parseInt(ageRange.value, 10);
-    const location = document.getElementById('locationInput').value.trim();
+    const location = locationInput.value.trim();
+    const customAlias = document.getElementById('aliasInput').value.trim();
 
     if (!age || !selectedGender || !location) {
       alert('Please fill out all information completely.');
@@ -227,8 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
     enterPortalBtn.disabled = true;
     enterPortalBtn.querySelector('span').textContent = 'Connecting...';
 
-    // Socket login register payload
-    socket.emit('join-portal', { age, gender: selectedGender, location }, (response) => {
+    // Socket login register payload with optional custom Display Name
+    socket.emit('join-portal', { age, gender: selectedGender, location, customAlias }, (response) => {
       if (response.success) {
         myProfile = response.profile;
         
@@ -250,6 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
 
   // Header Mode Navigation Tabs switcher
   const navTabs = document.querySelectorAll('.nav-tab');
