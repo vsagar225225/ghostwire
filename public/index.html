@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AnonSphere | Premium Anonymous Chat Portal</title>
+  <!-- Modern Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="description" content="Connect instantly, speak freely, and remain completely anonymous on AnonSphere. No login, text-only portal.">
+</head>
+<body>
+
+  <!-- Floating Particle Backdrop canvas -->
+  <div class="particle-background" id="particles"></div>
+
+  <!-- 1. ONBOARDING OVERLAY SCREEN -->
+  <section class="onboarding-overlay" id="onboardingScreen">
+    <div class="glass-card onboarding-card">
+      <div class="glowing-border"></div>
+      
+      <!-- Brand Logo Header -->
+      <div class="brand-header animate-fade-in">
+        <div class="logo-orb">
+          <svg class="orb-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="url(#logoGlow)" stroke-width="2"/>
+            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="url(#logoGlow)"/>
+            <defs>
+              <linearGradient id="logoGlow" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#ec4899"/>
+                <stop offset="50%" stop-color="#a855f7"/>
+                <stop offset="100%" stop-color="#3b82f6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1 class="logo-text">AnonSphere</h1>
+        <p class="brand-sub">Step into a world of raw conversations.</p>
+      </div>
+
+      <!-- Registration-free demographic form -->
+      <form class="onboarding-form" id="onboardingForm" onsubmit="return false;">
+        <!-- Age Input Slider Container -->
+        <div class="form-group animate-slide-up" style="animation-delay: 0.1s;">
+          <div class="form-label-row">
+            <label for="ageRange">Age</label>
+            <span class="bubble-tag" id="ageValue">22</span>
+          </div>
+          <div class="range-slider-wrapper">
+            <input type="range" id="ageRange" name="age" min="12" max="99" value="22" class="range-slider">
+          </div>
+        </div>
+
+        <!-- Gender Options Cards -->
+        <div class="form-group animate-slide-up" style="animation-delay: 0.2s;">
+          <label>Gender Identity</label>
+          <div class="gender-grid" role="radiogroup" aria-label="Gender identity options">
+            <div class="gender-card active" data-gender="Male" role="radio" aria-checked="true" tabindex="0">
+              <span class="gender-icon">🙋‍♂️</span>
+              <span class="gender-name">Male</span>
+            </div>
+            <div class="gender-card" data-gender="Female" role="radio" aria-checked="false" tabindex="0">
+              <span class="gender-icon">🙋‍♀️</span>
+              <span class="gender-name">Female</span>
+            </div>
+            <div class="gender-card" data-gender="Non-Binary" role="radio" aria-checked="false" tabindex="0">
+              <span class="gender-icon">✨</span>
+              <span class="gender-name">Non-Binary</span>
+            </div>
+            <div class="gender-card" data-gender="Secret" role="radio" aria-checked="false" tabindex="0">
+              <span class="gender-icon">👤</span>
+              <span class="gender-name">Secret</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Field -->
+        <div class="form-group animate-slide-up" style="animation-delay: 0.3s;">
+          <label for="locationInput">Your Location</label>
+          <div class="input-glow-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <input type="text" id="locationInput" name="location" placeholder="e.g., London, USA, Neo Tokyo" required maxlength="30" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Submission Trigger -->
+        <button type="submit" class="glow-btn animate-slide-up" id="enterPortalBtn" style="animation-delay: 0.4s;">
+          <span>Enter the Sphere</span>
+          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- 2. MAIN APP PORTAL (Initially Invisible) -->
+  <main class="app-portal hidden" id="appPortal">
+    
+    <!-- Header Toolbar -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="header-logo">
+          <div class="mini-pulsar"></div>
+          <span>AnonSphere</span>
+        </div>
+        
+        <!-- Mode Tabs -->
+        <nav class="mode-navigator">
+          <button class="nav-tab active" id="tabLounge" data-target="loungeView" title="Public Group Lounge">
+            <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>Global Lounge</span>
+          </button>
+          <button class="nav-tab" id="tabMatch" data-target="matchView" title="Anonymous 1-on-1 Whisper Match">
+            <svg class="tab-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <path d="M8 11h8"></path>
+              <path d="M12 7v8"></path>
+            </svg>
+            <span>Whisper Match</span>
+            <span class="indicator-glow-dot red-match-dot hidden" id="matchActiveDot"></span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="header-right">
+        <!-- Self Profile Tag -->
+        <div class="profile-pill" id="selfProfilePill">
+          <span class="user-avatar-dot"></span>
+          <span class="profile-alias" id="myAlias">Connecting...</span>
+        </div>
+
+        <!-- Active Soul Presence Bubble -->
+        <div class="presence-bubble" title="Active users currently connected">
+          <span class="pulse-emerald"></span>
+          <span id="activeCount">1</span>
+          <span class="presence-label">online</span>
+        </div>
+
+        <!-- Control Action Bar -->
+        <div class="action-controls">
+          <!-- Toggle Sidebar -->
+          <button class="control-btn" id="toggleSidebarBtn" title="Toggle Users List">
+            <svg class="control-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <!-- Mute Sounds Toggle -->
+          <button class="control-btn" id="muteAudioBtn" title="Toggle Notification Audio">
+            <svg class="control-svg volume-on" id="volumeSvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path class="wave" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <div class="app-body">
+      
+      <!-- Left Panel: Chat Board -->
+      <section class="chat-workspace glass-card">
+        
+        <!-- VIEW 1: GLOBAL GROUP LOUNGE -->
+        <div class="chat-view active" id="loungeView">
+          <div class="view-header">
+            <div class="header-details">
+              <h2>🌌 Global Lounge</h2>
+              <p>A virtual space to talk, network, and ponder with all online souls.</p>
+            </div>
+          </div>
+          
+          <div class="messages-container" id="loungeMessages">
+            <div class="msg-card system-announcement">
+              <div class="announce-body">
+                💡 <strong>AnonSphere Guidelines</strong>: Be kind, keep details private, and enjoy standard text chats. Images, attachments, and scripts are blocked automatically to enforce pure anonymity.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: PRIVATE WHISPER MATCH -->
+        <div class="chat-view" id="matchView">
+          <div class="view-header match-header">
+            <div class="header-details" id="matchHeaderDetails">
+              <h2>🤫 Whisper Match</h2>
+              <p>Match with a random stranger, chat intimately in text, and skip next.</p>
+            </div>
+            
+            <div class="match-actions" id="matchToolbarActions">
+              <!-- Contextual action triggers appear dynamically -->
+            </div>
+          </div>
+
+          <!-- Private Match Workspace (changes states) -->
+          <div class="match-interactive-deck" id="matchInteractiveDeck">
+            
+            <!-- State A: Idle Selection -->
+            <div class="match-state-block" id="stateMatchIdle">
+              <div class="match-prompt-art">
+                <svg class="radar-art" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <circle cx="12" cy="12" r="9" class="pulse-ring"></circle>
+                  <circle cx="12" cy="12" r="6"></circle>
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <line x1="12" y1="2" x2="12" y2="22" class="scan-bar"></line>
+                </svg>
+              </div>
+              <h3>Ready to meet someone new?</h3>
+              <p>Initiate matchmaking to link anonymously with a peer online.</p>
+              <button class="glow-btn match-trigger-btn" id="startMatchmakingBtn">
+                <span>Start Matchmaker</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- State B: Matching In Queue -->
+            <div class="match-state-block hidden" id="stateMatchSearching">
+              <div class="seeking-avatar-wrapper">
+                <div class="radar-ping-ring"></div>
+                <div class="radar-ping-ring delay-1"></div>
+                <div class="radar-ping-ring delay-2"></div>
+                <div class="seeker-orb">👀</div>
+              </div>
+              <h3>Scanning the AnonSphere...</h3>
+              <p>Searching for an active soul. Please keep this tab active.</p>
+              <button class="outline-btn cancel-search-btn" id="cancelMatchmakingBtn">
+                <span>Cancel Search</span>
+              </button>
+            </div>
+
+            <!-- State C: Chat Window -->
+            <div class="private-messages-deck hidden" id="stateMatchChat">
+              <div class="messages-container" id="privateMessages">
+                <!-- Private messages appear here -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Chat Workspace Typing Sentinel -->
+        <div class="typing-sentinel-dock" id="typingIndicatorDock">
+          <!-- Bouncing text dynamic alerts appear here -->
+        </div>
+
+        <!-- BOTTOM TOOLBAR: INPUT DOCK -->
+        <footer class="chat-input-dock hidden" id="chatInputDock">
+          <form class="input-form" id="chatInputForm" onsubmit="return false;">
+            <!-- Emoji Panel trigger -->
+            <button type="button" class="form-util-btn" id="emojiPanelBtn" title="Insert Emoji">
+              😀
+            </button>
+            
+            <div class="input-control-box">
+              <input type="text" id="chatInputField" placeholder="Type a message..." maxlength="1000" autocomplete="off" required>
+            </div>
+            
+            <button type="submit" class="send-message-btn" id="sendMessageBtn" title="Send Message">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </form>
+
+          <!-- Emoji floating panel dropdown container -->
+          <div class="emoji-selector-popup hidden" id="emojiSelectorPopup">
+            <div class="emoji-list">
+              <!-- Top tier messaging emojis -->
+              <span>😀</span><span>😂</span><span>😊</span><span>😍</span><span>🤔</span>
+              <span>😎</span><span>😜</span><span>🤫</span><span>😱</span><span>😴</span>
+              <span>🔥</span><span>✨</span><span>🎉</span><span>❤️</span><span>👍</span>
+              <span>👋</span><span>👀</span><span>💯</span><span>💡</span><span>🛸</span>
+              <span>👑</span><span>💀</span><span>👾</span><span>💥</span><span>🍀</span>
+              <span>🌟</span><span>🌙</span><span>🪐</span><span>🌈</span><span>🍕</span>
+            </div>
+          </div>
+        </footer>
+
+      </section>
+
+      <!-- Right Panel Sidebar: Connected Users Drawer -->
+      <aside class="active-users-sidebar glass-card" id="sidebarDrawer">
+        <div class="sidebar-header">
+          <h3>Active Souls</h3>
+          <span class="count-badge" id="sidebarUsersCount">0</span>
+        </div>
+        <div class="users-list-scroller" id="sidebarUsersList">
+          <!-- Dynamic users list mapping -->
+          <div class="sidebar-placeholder">
+            Onboarding profiles will load shortly...
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- Load Real-Time Socket.io Script & Client Logic -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
